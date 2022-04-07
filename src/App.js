@@ -13,7 +13,7 @@ const auth = getAuth(app);
 
 function App() {
     const [validated, setValidated] = useState(false);
-
+    const [error, setError] = useState();
     const [registered, setRegistered] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -34,20 +34,37 @@ function App() {
             e.stopPropagation();
             return;
         }
-
+        if (!/(?=.*?[#?!@$%^&*-])/.test(password)) {
+            setError("Password Should contain at least one special character");
+            return;
+        }
         setValidated(true);
-
-        createUserWithEmailAndPassword(auth, email, password)
-            .then((res) => {
-                const user = res.user;
-                console.log(user);
-                setEmail("");
-                setPassword("");
-            })
-            .catch((err) => {
-                console.log("Error", err);
-            });
-        e.preventDefault();
+        setError("");
+        if (registered) {
+            signInWithEmailAndPassword(auth, email, password)
+                .then((res) => {
+                    const user = res.user;
+                    console.log(user);
+                    setEmail("");
+                    setPassword("");
+                })
+                .catch((err) => {
+                    console.log("Error", err);
+                    setError(err.message);
+                });
+        } else {
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((res) => {
+                    const user = res.user;
+                    console.log(user);
+                    setEmail("");
+                    setPassword("");
+                })
+                .catch((err) => {
+                    console.log("Error", err);
+                    setError(err.message);
+                });
+        }
     };
     return (
         <div className="w-50 mx-auto mt-3">
@@ -97,6 +114,7 @@ function App() {
                             label="Already Registered"
                         />
                     </Form.Group>
+                    <p className="text-danger">{error}</p>
                     <Button variant="primary" type="submit">
                         {registered ? "Login" : "Register"}
                     </Button>
